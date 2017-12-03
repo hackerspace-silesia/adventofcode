@@ -104,3 +104,11 @@ ENV/
 # vim files
 *.swp
 *.swo
+
+# Haskell
+*.hi
+*.o
+
+# Tests for solutions
+test*
+
