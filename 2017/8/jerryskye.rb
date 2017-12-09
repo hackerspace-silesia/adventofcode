@@ -1,4 +1,4 @@
-input = File.read('venv/2017/input8')
+input = STDIN.read
 hsh = Hash.new(0)
 max = 0
 input.each_line do |line|
