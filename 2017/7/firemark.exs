@@ -10,7 +10,12 @@ defmodule TaskSeven do
 
   def start do
     data = load_data("input.txt")
-    IO.inspect get_orphans(data), label: 'root'
+    root_name = get_root(data)
+    result = get_wrong_weight(data[root_name], data)
+    IO.inspect root_name, label: 'root'
+    IO.inspect result.diff, label: 'diff'
+    IO.inspect result.weight, label: 'weight'
+    IO.inspect result.correct_weight, label: 'correct weight'
   end
 
   defp load_data(filename) do
@@ -45,7 +50,7 @@ defmodule TaskSeven do
     {name_weight, []}
   end
 
-  defp get_orphans(data) do
+  defp get_root(data) do
     has_parents = data
                   |> Map.values
                   |> Stream.flat_map(fn obj -> obj.nodes end)
@@ -55,8 +60,65 @@ defmodule TaskSeven do
                |> Stream.map(fn {name, _} -> name end)
                |> MapSet.new
   
-    MapSet.difference(set_data, has_parents)
+    [root] = set_data
+             |> MapSet.difference(has_parents)
+             |> Enum.to_list
+
+    root 
   end
+
+  defp get_wrong_weight(disk_node, data) do
+    try do
+      get_weight!(disk_node, data)
+      nil
+    catch
+      x -> x
+    end
+  end
+
+  defp get_weight!(%DiskNode{weight: weight, nodes: []}, data) do
+    weight
+  end
+
+  defp get_weight!(%DiskNode{weight: weight, nodes: nodes}, data) do
+    new_weights = Enum.map(nodes, fn name -> get_weight!(data[name], data) end)
+    set = MapSet.new(new_weights)
+    if MapSet.size(set) != 1 do
+      min = Enum.min(new_weights)
+      {max, max_index} = get_max_index(new_weights)
+      obj = data[Enum.at(nodes, max_index)]
+      diff = max - min
+
+      throw(%{
+        diff: diff,
+        weight: obj.weight,
+        correct_weight: obj.weight - diff,
+      })
+    else 
+      Enum.sum(new_weights) + weight
+    end
+  end
+
+  defp get_max_index([head | tail]) do
+    get_max_index(head, 0, 1, tail)
+  end
+
+  defp get_max_index([head]) do
+    {head, 0}
+  end
+
+  defp get_max_index(max_val, max_index, _index, []) do
+    {max_val, max_index}
+  end
+
+  defp get_max_index(max_val, max_index, index, [head | tail]) do
+    if max_val < head do
+      get_max_index(head, index, index + 1, tail)
+    else
+      get_max_index(max_val, max_index, index + 1, tail)
+    end
+  end
+
 end
 
 TaskSeven.start
