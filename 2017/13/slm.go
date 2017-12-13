@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type Firewall map[int]int
+type Firewall [][2]int
 
 func readInput() (Firewall, int) {
 	f := Firewall{}
@@ -23,7 +23,7 @@ func readInput() (Firewall, int) {
 		s := strings.Split(line, ": ")
 		depth, _ := strconv.Atoi(s[0])
 		scannerRange, _ := strconv.Atoi(s[1])
-		f[depth] = scannerRange
+		f = append(f, [2]int{depth, scannerRange})
 		layers = depth
 	}
 	return f, layers
@@ -35,13 +35,10 @@ func isCaught(time, sRange int) bool {
 
 func getSeverity(f Firewall, layers int) int {
 	severity := 0
-	for i := 0; i < layers+1; i++ {
-		sRange, ok := f[i]
-		if !ok {
-			continue
-		}
-		if isCaught(i, sRange) {
-			severity += i * sRange
+	for _, rule := range f {
+		layer, sRange := rule[0], rule[1]
+		if isCaught(layer, sRange) {
+			severity += layer * sRange
 		}
 	}
 	return severity
@@ -51,12 +48,10 @@ func whenToStart(f Firewall, layers int) int {
 	time := 0
 loop:
 	for {
-		for layer := 0; layer < layers+1; layer++ {
-			sRange, ok := f[layer]
-			if ok {
-				if isCaught(time+layer, sRange) {
-					break
-				}
+		for _, rule := range f {
+			layer, sRange := rule[0], rule[1]
+			if isCaught(time+layer, sRange) {
+				break
 			}
 			if layer == layers {
 				break loop
