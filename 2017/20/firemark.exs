@@ -8,6 +8,7 @@ defmodule Particle do
     {a0, a1, a2} = a
 
     new_v = {v0 + a0, v1 + a1, v2 + a2}
+    {v0, v1, v2} = new_v
     new_p = {p0 + v0, p1 + v1, p2 + v2}
     %Particle{index: index, p: new_p, v: new_v, a: a}
   end
@@ -49,7 +50,7 @@ defmodule TaskTwenty do
     {x, y, z}
   end
 
-  defp find_all_collisions(data, 100) do
+  defp find_all_collisions(data, 1000) do
     Enum.count(data)
   end
 
@@ -57,13 +58,6 @@ defmodule TaskTwenty do
     duplicates_count = Enum.reduce(data, %{}, fn particle, dups ->
       Map.update(dups, particle.p, {particle, 1}, fn {p, c} -> {p, c + 1} end)
     end)
-
-    if true do
-      IO.inspect(
-        data |> Enum.count,
-        label: "iterate #{count}, count",
-      )
-    end
 
     data = duplicates_count 
            |> Enum.filter(fn {_, {_, count}} -> count == 1 end)
