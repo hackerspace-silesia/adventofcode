@@ -7,9 +7,9 @@ defmodule Particle do
     {v0, v1, v2} = v
     {a0, a1, a2} = a
 
-    v = {v0 + a0, v1 + a1, v2 + a2}
-    p = {p0 + v0, p1 + v1, p2 + v2}
-    %Particle{index: index, p: p, v: v, a: a}
+    new_v = {v0 + a0, v1 + a1, v2 + a2}
+    new_p = {p0 + v0, p1 + v1, p2 + v2}
+    %Particle{index: index, p: new_p, v: new_v, a: a}
   end
 
   def distance(particle), do: vec_value(particle.p)
@@ -21,7 +21,8 @@ end
 defmodule TaskTwenty do
   def start do
     data = load_data("input.txt")
-    IO.inspect find_closest(data), label: "the closest particle"
+    #IO.inspect find_closest(data), label: "the closest particle"
+    IO.inspect find_all_collisions(data)
   end
 
   defp load_data(filename) do
@@ -29,7 +30,7 @@ defmodule TaskTwenty do
     filename
     |> File.stream!
     |> Stream.with_index(0)
-    |> Task.async_stream(fn {line, index} ->
+    |> Stream.map(fn {line, index} ->
       [_, p0, p1, p2, v0, v1, v2, a0, a1, a2] = Regex.run(re_line, line)
 
       p = raw_vec_to_int_vec({p0, p1, p2}) 
@@ -38,7 +39,7 @@ defmodule TaskTwenty do
 
       %Particle{index: index, p: p, v: v, a: a}
     end)
-    |> Enum.map(fn {:ok, particle} -> particle end)
+    |> Enum.to_list
   end
 
   defp raw_vec_to_int_vec({x, y, z}) do
@@ -48,16 +49,27 @@ defmodule TaskTwenty do
     {x, y, z}
   end
 
-  defp find_all_collisions([], count \\ 0) do
-    count
+  defp find_all_collisions(data, 100) do
+    Enum.count(data)
   end
 
   defp find_all_collisions(data, count \\ 0) do
-    {data, _} = Enum.reduce(data, {%{}, %{}}, fn data, new ->
-      data,
+    duplicates_count = Enum.reduce(data, %{}, fn particle, dups ->
+      Map.update(dups, particle.p, {particle, 1}, fn {p, c} -> {p, c + 1} end)
     end)
 
-    find_all_colisions(Enum.map(data, &Particle.step/1), count + 1)
+    if true do
+      IO.inspect(
+        data |> Enum.count,
+        label: "iterate #{count}, count",
+      )
+    end
+
+    data = duplicates_count 
+           |> Enum.filter(fn {_, {_, count}} -> count == 1 end)
+           |> Enum.map(fn {_, {particle, _}} -> Particle.step(particle) end)
+
+    find_all_collisions(data, count + 1)
   end
 
   defp find_closest(data) do
