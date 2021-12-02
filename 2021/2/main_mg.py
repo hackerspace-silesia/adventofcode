@@ -31,11 +31,6 @@ def calculate_position_aim(data):
 
     return forward * depth
 
-with open('test_input_mg.txt') as f:
-    data = f.read().split('\n')
-    assert 150 == calculate_position(data)
-    assert 900 == calculate_position_aim(data)
-
 with open('input_mg.txt') as f:
     data = f.read().split('\n')
     assert 1989265 == calculate_position(data)
