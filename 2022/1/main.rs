@@ -2,7 +2,6 @@ use std::fs::File;
 use std::io::{Error, BufReader};
 use std::io::Read;
 
-
 fn read_file_to_string(filepath: &str) -> String{
     let file = File::open(filepath).expect("Unable to open");
     let mut reader = BufReader::new(file);
